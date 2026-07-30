@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 
 const editorialSource = await readFile(new URL('../src/data/bookstoreEditorial.ts', import.meta.url), 'utf8')
 const profilePattern = /amapId: '([^']+)',\s*tags: \[([^\]]*)\],\s*description: '([^']*)',\s*sources: \[([^\]]*)\]/g
@@ -16,8 +16,24 @@ for (const match of editorialSource.matchAll(profilePattern)) {
 
 if (profiles.length === 0) throw new Error('未能读取已批准的书店编辑档案。')
 
+const distDirectory = new URL('../dist/', import.meta.url)
+const staticAssets = {
+  '/': { body: await readFile(new URL('index.html', distDirectory), 'utf8'), contentType: 'text/html; charset=utf-8' },
+  '/index.html': { body: await readFile(new URL('index.html', distDirectory), 'utf8'), contentType: 'text/html; charset=utf-8' },
+}
+for (const fileName of await readdir(new URL('assets/', distDirectory))) {
+  const contentType = fileName.endsWith('.css') ? 'text/css; charset=utf-8'
+    : fileName.endsWith('.js') ? 'text/javascript; charset=utf-8'
+      : 'application/octet-stream'
+  staticAssets[`/assets/${fileName}`] = {
+    body: await readFile(new URL(`assets/${fileName}`, distDirectory), 'utf8'),
+    contentType,
+  }
+}
+
 const worker = `
 const editorialProfiles = ${JSON.stringify(profiles)};
+const staticAssets = ${JSON.stringify(staticAssets)};
 const editorialByAmapId = new Map(editorialProfiles.map((profile) => [profile.amapId, profile]));
 const mallAddressPattern = /购物中心|商场|广场|百货|\\b(?:mall)\\b|大悦城|万象城|万达(?:广场)?|来福士|太古里|太古汇|银泰(?:城|百货)?|龙之梦|印象城|吾悦(?:广场)?|世茂(?:广场)?|缤纷城|天街|天地|奥特莱斯|奥莱/i;
 const fallbackImage = 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=85';
@@ -109,6 +125,11 @@ function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 }
 
+function staticResponse(pathname) {
+  const asset = staticAssets[pathname];
+  return asset ? new Response(asset.body, { headers: { 'content-type': asset.contentType, 'cache-control': pathname.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'no-store' } }) : null;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -121,11 +142,10 @@ export default {
         return json({ message: error instanceof Error ? error.message : '暂时无法读取书店数据，请稍后重试。' }, 503);
       }
     }
-    const asset = await env.ASSETS.fetch(request);
-    if (asset.status === 404 && request.headers.get('accept')?.includes('text/html')) {
-      return env.ASSETS.fetch(new Request(new URL('/index.html', url), request));
-    }
-    return asset;
+    const asset = staticResponse(url.pathname);
+    if (asset) return asset;
+    if (request.headers.get('accept')?.includes('text/html')) return staticResponse('/') || new Response('Not found', { status: 404 });
+    return new Response('Not found', { status: 404 });
   },
 };
 `
