@@ -28,10 +28,14 @@ function isMobileDevice() {
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 }
 
+function getAvailableTags(bookstores: Bookstore[]) {
+  return styleOptions.filter((tag) => bookstores.some((store) => store.tags.includes(tag)))
+}
+
 export default function App() {
   const [city, setCity] = useState('上海')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [hasSearched, setHasSearched] = useState(false)
+  const [availableTags, setAvailableTags] = useState(styleOptions)
   const [isCityMenuOpen, setIsCityMenuOpen] = useState(false)
   const [results, setResults] = useState<Bookstore[]>([])
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
@@ -44,6 +48,12 @@ export default function App() {
     try {
       const response = await searchBookstores(params)
       setResults(response.data)
+      if (!params.tags?.length) setAvailableTags(getAvailableTags(response.data))
+      if (params.tags?.length === 1 && response.data.length === 0) {
+        const [unavailableTag] = params.tags
+        setAvailableTags((current) => current.filter((tag) => tag !== unavailableTag))
+        setSelectedTags((current) => current.filter((tag) => tag !== unavailableTag))
+      }
       setDataNotice(response.meta.fallback
         ? '高德数据暂时不可用，当前展示本地示例书店。'
         : response.meta.source === 'amap'
@@ -65,8 +75,14 @@ export default function App() {
     setSelectedTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])
   }
 
+  const selectCity = (nextCity: string) => {
+    setCity(nextCity)
+    setSelectedTags([])
+    setIsCityMenuOpen(false)
+    void loadBookstores({ city: nextCity })
+  }
+
   const handleSearch = () => {
-    setHasSearched(true)
     void loadBookstores({ city, tags: selectedTags })
     document.querySelector('#results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -74,7 +90,6 @@ export default function App() {
   const resetFilters = () => {
     setCity('上海')
     setSelectedTags([])
-    setHasSearched(true)
     void loadBookstores({ city: '上海' })
   }
 
@@ -94,7 +109,7 @@ export default function App() {
         <div className="hero-content" id="top">
           <p className="eyebrow">BOOKSTORES, SLOWLY FOUND</p>
           <h1 id="page-title">去那间属于你的书店</h1>
-          <p className="hero-copy">在书架之间找到愿意多停留一会儿的地方。</p>
+          <p className="hero-copy">在城市之间找到愿意多停留一会儿的地方。</p>
         </div>
       </section>
 
@@ -125,10 +140,7 @@ export default function App() {
                       role="option"
                       aria-selected={city === option}
                       className={city === option ? 'city-option selected' : 'city-option'}
-                      onClick={() => {
-                        setCity(option)
-                        setIsCityMenuOpen(false)
-                      }}
+                      onClick={() => selectCity(option)}
                     >
                       {option}
                     </button>
@@ -140,7 +152,7 @@ export default function App() {
           <fieldset className="control-block style-control">
             <legend>想找怎样的书店？</legend>
             <div className="tag-list">
-              {styleOptions.map((tag) => (
+              {availableTags.map((tag) => (
                 <button className={selectedTags.includes(tag) ? 'tag active' : 'tag'} type="button" key={tag} onClick={() => toggleTag(tag)} aria-pressed={selectedTags.includes(tag)}>
                   {tag}
                 </button>
@@ -155,7 +167,7 @@ export default function App() {
         <div className="results-heading">
           <div>
             <p className="eyebrow">YOUR BOOKISH STOPS</p>
-            <h2>{hasSearched ? '为你找到的书店' : '上海的书店选择'}</h2>
+            <h2>{city}的书店选择</h2>
           </div>
           <p className="result-count">{status === 'loading' ? '...' : results.length} <span>家书店</span></p>
         </div>
