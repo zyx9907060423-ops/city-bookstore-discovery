@@ -89,7 +89,7 @@ export default function App() {
             <div className="select-wrap">
               <PinIcon />
               <select id="city" value={city} onChange={(event) => setCity(event.target.value)}>
-                {cityOptions.map((option) => <option key={option} value={option} />)}
+                {cityOptions.map((option) => <option key={option} value={option}>{option}</option>)}
               </select>
               <ArrowIcon />
             </div>
