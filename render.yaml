@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: city-bookstore-discovery
+    runtime: node
+    buildCommand: pnpm install --frozen-lockfile && pnpm build
+    startCommand: pnpm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.0
+      - key: BOOKSTORE_PROVIDER
+        value: amap

@@ -1,0 +1,27 @@
+{
+  "name": "city-bookstore-discovery",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server/dev.ts",
+    "build": "tsc -b && vite build && node scripts/build-sites-worker.mjs",
+    "start": "tsx server/prod.ts"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "typescript": "latest",
+    "tsx": "latest",
+    "@types/node": "latest",
+    "@types/express": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
+}
