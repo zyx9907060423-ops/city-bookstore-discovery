@@ -57,3 +57,17 @@ GET /api/health
 1. Vercel 会运行 `pnpm build` 并发布 `dist`。
 2. 在 **Settings → Environment Variables** 中添加 `BOOKSTORE_PROVIDER=amap` 与 `AMAP_API_KEY`；后者必须作为 Secret 保存，且不能使用 `VITE_` 前缀。
 3. 重新部署后，网页经由同域的 `/api/bookstores` 调用服务端，再由服务端请求高德。
+
+## 部署为 ESA Pages 免费测试版
+
+项目根目录的 `esa.jsonc` 和 `esa/index.ts` 是阿里云 ESA Functions & Pages 专用配置；它们不会影响 `vercel.json` 或现有 Vercel 网站。ESA 使用边缘函数处理 `/api/bookstores`，高德 Key 只从 ESA 环境变量读取。
+
+无自有域名时，ESA 提供的公共预览链接仅供测试，访问时需要 token，token 有效期为 60 分钟；它不是长期分享链接。
+
+1. 登录 [阿里云 ESA 控制台](https://esa.console.aliyun.com/)，在 **边缘计算和 AI → 函数和Pages** 中开通免费模式。
+2. 选择 **创建 → 导入 GitHub 仓库**，授权 GitHub 后选择 `zyx9907060423-ops/city-bookstore-discovery` 与 `main` 分支。
+3. ESA 会读取仓库中的 `esa.jsonc`。若控制台要求手填，请使用：安装命令 `pnpm install --no-frozen-lockfile`、构建命令 `pnpm exec tsc -b && pnpm exec vite build`、静态资源目录 `./dist`、函数入口 `./esa/index.ts`。
+4. 在项目的环境变量中添加 `AMAP_API_KEY`，填写高德 Web 服务 Key。不要填写 `VITE_AMAP_API_KEY`，不要把 Key 提交到 GitHub。
+5. 点击部署。构建成功后用 ESA 提供的带 token 预览链接测试网页和 `/api/health`；token 失效后在 ESA 控制台重新生成预览链接。
+
+ESA 支持通过 GitHub 导入仓库和自动构建；其公共测试链接的 token 有效期为 60 分钟。[ESA GitHub 导入文档](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/connect-pages-to-github)

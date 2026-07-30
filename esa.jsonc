@@ -1,0 +1,10 @@
+{
+  "name": "city-bookstore-discovery-esa",
+  "entry": "./esa/index.ts",
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "buildCommand": "pnpm exec tsc -b && pnpm exec vite build",
+  "assets": {
+    "directory": "./dist",
+    "notFoundStrategy": "singlePageApplication"
+  }
+}

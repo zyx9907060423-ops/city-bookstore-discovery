@@ -11,5 +11,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["server", "src/types", "src/data"]
+  "include": ["server", "esa", "src/types", "src/data"]
 }
