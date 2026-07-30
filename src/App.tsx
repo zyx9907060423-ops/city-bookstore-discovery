@@ -23,6 +23,7 @@ export default function App() {
   const [city, setCity] = useState('上海')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [isCityMenuOpen, setIsCityMenuOpen] = useState(false)
   const [results, setResults] = useState<Bookstore[]>([])
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [errorMessage, setErrorMessage] = useState('')
@@ -88,10 +89,37 @@ export default function App() {
             <label htmlFor="city">你在哪座城市？</label>
             <div className="select-wrap">
               <PinIcon />
-              <select id="city" value={city} onChange={(event) => setCity(event.target.value)}>
-                {cityOptions.map((option) => <option key={option} value={option}>{option}</option>)}
-              </select>
+              <button
+                id="city"
+                className="city-trigger"
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded={isCityMenuOpen}
+                aria-controls="city-options"
+                onClick={() => setIsCityMenuOpen((current) => !current)}
+              >
+                {city}
+              </button>
               <ArrowIcon />
+              {isCityMenuOpen && (
+                <div className="city-menu" id="city-options" role="listbox" aria-label="选择城市">
+                  {cityOptions.map((option) => (
+                    <button
+                      type="button"
+                      key={option}
+                      role="option"
+                      aria-selected={city === option}
+                      className={city === option ? 'city-option selected' : 'city-option'}
+                      onClick={() => {
+                        setCity(option)
+                        setIsCityMenuOpen(false)
+                      }}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <fieldset className="control-block style-control">

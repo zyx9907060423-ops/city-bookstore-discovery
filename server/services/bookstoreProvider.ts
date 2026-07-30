@@ -1,5 +1,6 @@
 import type { Bookstore, BookstoreSearchParams } from '../../src/types/bookstore.js'
 import { approvedBookstoreEditorialByAmapId } from '../../src/data/bookstoreEditorial.js'
+import { getApprovedBookstoreEditorialRule } from '../../src/data/bookstoreEditorialRules.js'
 import { applySupportedTags } from '../../src/data/bookstoreTagging.js'
 
 export interface BookstoreProvider {
@@ -116,6 +117,7 @@ export class AmapProvider implements BookstoreProvider {
 
     const mappedBookstores = uniqueBookstores.map((poi) => {
       const profile = approvedBookstoreEditorialByAmapId.get(poi.id)
+        ?? getApprovedBookstoreEditorialRule(poi.cityname || city, poi.name)
       const tags = applySupportedTags({ name: poi.name, address: poi.address ?? '', tags: profile?.tags })
       return {
         id: `amap-${poi.id}`,

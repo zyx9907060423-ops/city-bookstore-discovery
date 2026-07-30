@@ -1,6 +1,7 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 
 const editorialSource = await readFile(new URL('../src/data/bookstoreEditorial.ts', import.meta.url), 'utf8')
+const editorialRulesSource = await readFile(new URL('../src/data/bookstoreEditorialRules.ts', import.meta.url), 'utf8')
 const profilePattern = /amapId: '([^']+)',\s*tags: \[([^\]]*)\],\s*description: '([^']*)',\s*sources: \[([^\]]*)\]/g
 const profiles = []
 
@@ -15,6 +16,22 @@ for (const match of editorialSource.matchAll(profilePattern)) {
 }
 
 if (profiles.length === 0) throw new Error('未能读取已批准的书店编辑档案。')
+
+const nameRulePattern = /city: '([^']+)', nameIncludes: '([^']+)', tags: \[([^\]]*)\],\s*description: '([^']*)',\s*sources: \[([^\]]*)\], confidence: '([^']+)'/g
+const nameRules = []
+for (const match of editorialRulesSource.matchAll(nameRulePattern)) {
+  const [, city, nameIncludes, rawTags, description, rawSources, confidence] = match
+  nameRules.push({
+    city,
+    nameIncludes,
+    tags: [...rawTags.matchAll(/'([^']+)'/g)].map((entry) => entry[1]),
+    description,
+    sources: [...rawSources.matchAll(/'([^']+)'/g)].map((entry) => entry[1]),
+    confidence,
+  })
+}
+
+if (nameRules.length === 0) throw new Error('未能读取城市书店编辑规则。')
 
 const distDirectory = new URL('../dist/', import.meta.url)
 const staticAssets = {
@@ -33,6 +50,7 @@ for (const fileName of await readdir(new URL('assets/', distDirectory))) {
 
 const worker = `
 const editorialProfiles = ${JSON.stringify(profiles)};
+const editorialNameRules = ${JSON.stringify(nameRules)};
 const staticAssets = ${JSON.stringify(staticAssets)};
 const editorialByAmapId = new Map(editorialProfiles.map((profile) => [profile.amapId, profile]));
 const mallAddressPattern = /购物中心|商场|广场|百货|\\b(?:mall)\\b|大悦城|万象城|万达(?:广场)?|来福士|太古里|太古汇|银泰(?:城|百货)?|龙之梦|印象城|吾悦(?:广场)?|世茂(?:广场)?|缤纷城|天街|天地|奥特莱斯|奥莱/i;
@@ -40,21 +58,26 @@ const fallbackImage = 'https://images.unsplash.com/photo-1524995997946-a1c2e315a
 
 function ruleTags(name, address, existingTags = []) {
   const tags = new Set(existingTags.filter((tag) => tag !== '书店'));
-  if (name.includes('古籍') || name.includes('古旧书')) tags.add('古籍');
-  if (name.includes('教材') || name.includes('教辅') || name.includes('课本')) tags.add('教材书');
+  if (name.includes('古籍') || name.includes('古旧书') || name.includes('古书')) tags.add('古籍');
+  if (name.includes('教材') || name.includes('教辅') || name.includes('课本') || name.includes('人教')) tags.add('教材书');
   if (name.includes('书城')) tags.add('书城');
   if (name.includes('外文书') || name.includes('港版书') || name.includes('香港版书')) tags.add('外文书');
   if (name.includes('旧书') || name.includes('二手书')) tags.add('二手书');
   if (name.includes('儿童') || name.includes('童书') || name.includes('绘本') || name.includes('少儿')) tags.add('亲子');
   if (name.includes('咖啡')) tags.add('咖啡阅读');
   if (name.includes('艺术') || name.includes('美术') || name.includes('设计')) tags.add('艺术／设计');
-  if (name.includes('影视') || name.includes('戏剧') || name.includes('剧本')) tags.add('影视戏剧');
+  if (name.includes('影视') || name.includes('电影') || name.includes('戏剧') || name.includes('剧本')) tags.add('影视戏剧');
   if (name.includes('女性主义') || name.includes('女权')) tags.add('女性主义');
   if (name.includes('独立书店')) tags.add('独立书店');
   if (name.includes('江景') || name.includes('滨江')) tags.add('江景');
   if (name.includes('海景')) tags.add('海景');
   if (mallAddressPattern.test(address)) tags.add('商场内书店');
   return tags.size ? [...tags].slice(0, 4) : ['书店'];
+}
+
+function editorialProfileFor(poi, city) {
+  return editorialByAmapId.get(poi.id)
+    || editorialNameRules.find((rule) => (poi.cityname || city).includes(rule.city) && poi.name.includes(rule.nameIncludes));
 }
 
 function isBookstore(poi) {
@@ -102,7 +125,7 @@ async function searchBookstores(url, env) {
   }
   const uniquePois = [...new Map(pois.filter(isBookstore).map((poi) => [poi.id, poi])).values()];
   const data = uniquePois.map((poi) => {
-    const profile = editorialByAmapId.get(poi.id);
+    const profile = editorialProfileFor(poi, city);
     const address = [poi.adname, poi.address].filter(Boolean).join(' · ') || '高德未提供详细地址';
     const tags = ruleTags(poi.name, poi.address || '', profile?.tags || []);
     const link = mapUrl(poi);

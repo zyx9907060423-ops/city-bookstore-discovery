@@ -25,8 +25,12 @@ h1 { width: max-content; max-width: 100%; margin-bottom: 16px; color: #fff; font
 .control-block label, .control-block legend { display: block; margin: 0 0 13px; padding: 0; color: #5c5448; font-size: 13px; }
 .select-wrap { position: relative; display: flex; align-items: center; height: 42px; border-bottom: 1px solid #a9a093; }
 .select-wrap svg { width: 17px; height: 17px; fill: none; stroke: #9a663a; stroke-width: 1.7; flex: none; }
-.select-wrap svg:last-child { width: 16px; margin-left: auto; stroke: #6f675c; }
-.select-wrap select, .select-wrap input { width: 100%; appearance: none; border: 0; outline: 0; color: #2f2c27; background: transparent; padding: 0 6px; font-size: 16px; }
+.select-wrap > svg:last-of-type { width: 16px; margin-left: auto; stroke: #6f675c; }
+.select-wrap select, .select-wrap input, .city-trigger { width: 100%; appearance: none; border: 0; outline: 0; color: #2f2c27; background: transparent; padding: 0 6px; font-size: 16px; text-align: left; }
+.city-trigger { height: 100%; cursor: pointer; }
+.city-menu { position: absolute; top: calc(100% + 8px); left: 0; z-index: 10; display: grid; width: min(250px, calc(100vw - 64px)); gap: 2px; padding: 7px; background: #fffdf8; border: 1px solid #ded2c1; box-shadow: 0 12px 26px rgba(55, 43, 27, .18); }
+.city-option { border: 1px solid transparent; background: transparent; color: #554d42; padding: 9px 11px; text-align: left; font-size: 14px; transition: background .18s ease, color .18s ease, border-color .18s ease; }
+.city-option:hover, .city-option:focus-visible, .city-option.selected { background: #efe4d3; border-color: #d8c5ad; color: #71451f; outline: 0; }
 .tag-list { display: flex; flex-wrap: wrap; gap: 7px; }
 .tag { border: 1px solid #d9d0c3; background: #fffdf8; color: #60594e; padding: 6px 11px; border-radius: 100px; font-size: 12px; transition: .2s ease; }
 .tag:hover { border-color: #a97644; color: #865728; }
