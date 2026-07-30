@@ -49,3 +49,11 @@ GET /api/health
 5. 部署完成后，Render 会提供一个 `https://…onrender.com` 地址，电脑和手机都可直接访问。
 
 地图按钮使用高德 URI API 打开对应 POI，支持移动端与网页端。[高德地图 URI 文档](https://lbs.amap.com/api/uri-api/guide/mobile-web/point)；关于 Render 的端口与公网服务要求，参见 [Render Web Services 文档](https://render.com/docs/web-services)。
+
+## 部署为公网网站（Vercel）
+
+项目已包含 Vercel 的静态站点与 Serverless API 配置。导入 GitHub 仓库时使用仓库根目录。
+
+1. Vercel 会运行 `pnpm build` 并发布 `dist`。
+2. 在 **Settings → Environment Variables** 中添加 `BOOKSTORE_PROVIDER=amap` 与 `AMAP_API_KEY`；后者必须作为 Secret 保存，且不能使用 `VITE_` 前缀。
+3. 重新部署后，网页经由同域的 `/api/bookstores` 调用服务端，再由服务端请求高德。
