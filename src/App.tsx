@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { styleOptions } from './data/bookstores'
 import { searchBookstores } from './services/bookstoreService'
 import type { Bookstore, BookstoreSearchParams } from './types/bookstore'
@@ -17,6 +17,15 @@ function getUgcUrl(store: Bookstore) {
   if (store.ugcUrl) return store.ugcUrl
   const keyword = encodeURIComponent(`${store.name} ${store.city} 书店`)
   return `https://www.xiaohongshu.com/search_result?keyword=${keyword}&source=web_search_result_notes`
+}
+
+function getUgcAppUrl(store: Bookstore) {
+  const keyword = encodeURIComponent(`${store.name} ${store.city} 书店`)
+  return `xhsdiscover://search/result?keyword=${keyword}&target_search=notes&source=deeplink`
+}
+
+function isMobileDevice() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 }
 
 export default function App() {
@@ -67,6 +76,12 @@ export default function App() {
     setSelectedTags([])
     setHasSearched(true)
     void loadBookstores({ city: '上海' })
+  }
+
+  const handleUgcClick = (event: MouseEvent<HTMLAnchorElement>, store: Bookstore) => {
+    if (!isMobileDevice()) return
+    event.preventDefault()
+    window.location.href = getUgcAppUrl(store)
   }
 
   return (
@@ -174,7 +189,7 @@ export default function App() {
                   <p className="description">{store.description}</p>
                   <div className="card-links">
                     {store.mapUrl && <a className="map-link" href={store.mapUrl} target="_blank" rel="noreferrer">在地图中查看 <span>↗</span></a>}
-                    <a className="map-link" href={getUgcUrl(store)} target="_blank" rel="noreferrer">小红书看友分享 <span>↗</span></a>
+                    <a className="map-link" href={getUgcUrl(store)} target="_blank" rel="noreferrer" onClick={(event) => handleUgcClick(event, store)}>小红书看友分享 <span>↗</span></a>
                   </div>
                 </div>
               </article>
