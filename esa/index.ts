@@ -24,7 +24,9 @@ function parseSearchParams(url: URL): BookstoreSearchParams {
 function createBookstoreService() {
   const fallbackProvider = new MockBookstoreProvider()
   // ESA 将此值配置为运行环境变量；它不会打包进 Vite 的浏览器代码。
-  const apiKey = process.env.AMAP_API_KEY ?? ''
+  // 部分边缘运行时不会提供 Node.js 的 process 全局对象。缺少它时
+  // 仍应安全降级到 mock，而不是让 /api/bookstores 返回 500。
+  const apiKey = typeof process === 'undefined' ? '' : (process.env?.AMAP_API_KEY ?? '')
   const configuredProvider = apiKey ? new AmapProvider(apiKey) : undefined
   return new BookstoreService(fallbackProvider, configuredProvider)
 }
