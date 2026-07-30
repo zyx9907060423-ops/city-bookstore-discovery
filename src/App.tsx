@@ -16,7 +16,7 @@ function ArrowIcon() {
 function getUgcUrl(store: Bookstore) {
   if (store.ugcUrl) return store.ugcUrl
   const keyword = encodeURIComponent(`${store.name} ${store.city} 书店`)
-  return `https://www.xiaohongshu.com/searchresult?keyword=${keyword}&source=web_explore_feed`
+  return `https://www.xiaohongshu.com/search_result?keyword=${keyword}&source=web_search_result_notes`
 }
 
 export default function App() {
