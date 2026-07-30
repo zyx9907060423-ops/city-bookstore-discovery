@@ -46,9 +46,13 @@ function isBookstore(poi: AmapPoi) {
   return poi.type?.split(';').some((type) => type.trim() === '书店') ?? false
 }
 
-function createFallbackDescription(poi: AmapPoi) {
+function createFallbackDescription(poi: AmapPoi, tags: string[]) {
   const area = poi.adname ? `位于${poi.adname}的` : '这家'
-  return `${area}实体书店；可通过地图和书友分享进一步了解近期选书、空间与活动。`
+  if (tags.includes('书城')) return `${area}实体书城，适合集中挑选不同门类图书。`
+  if (tags.includes('古籍')) return `${area}古籍书店，可从版本与旧书线索开始寻书。`
+  if (tags.includes('教材书')) return `${area}教材书店，适合按学习需求查找教学用书。`
+  if (tags.includes('商场内书店')) return `${area}商场内书店，适合在逛店时顺路挑书。`
+  return `${area}实体书店，可通过地图与书友分享了解近期到店信息。`
 }
 
 /** 高德 POI 2.0：密钥只在服务端请求中使用。 */
@@ -112,6 +116,7 @@ export class AmapProvider implements BookstoreProvider {
 
     const mappedBookstores = uniqueBookstores.map((poi) => {
       const profile = approvedBookstoreEditorialByAmapId.get(poi.id)
+      const tags = applySupportedTags({ name: poi.name, address: poi.address ?? '', tags: profile?.tags })
       return {
         id: `amap-${poi.id}`,
         name: poi.name,
@@ -119,8 +124,8 @@ export class AmapProvider implements BookstoreProvider {
         address: [poi.adname, poi.address].filter(Boolean).join(' · ') || '高德未提供详细地址',
         image: toSecureImageUrl(poi.photos?.find((photo) => photo.url)?.url) || fallbackImage,
         // 高德的“专卖店”等行业分类不等于阅读体验；只使用已核验标签，或门店名称/地址中明确可判定的规则标签。
-        tags: applySupportedTags({ name: poi.name, address: poi.address ?? '', tags: profile?.tags }),
-        description: profile?.description ?? createFallbackDescription(poi),
+        tags,
+        description: [...(profile?.description ?? createFallbackDescription(poi, tags))].slice(0, 45).join(''),
         mapUrl: createMapUrl(poi),
         reviewUrl: createMapUrl(poi),
       }

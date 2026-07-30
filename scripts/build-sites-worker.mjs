@@ -28,8 +28,17 @@ function ruleTags(name, address, existingTags = []) {
   if (name.includes('教材') || name.includes('教辅') || name.includes('课本')) tags.add('教材书');
   if (name.includes('书城')) tags.add('书城');
   if (name.includes('外文书') || name.includes('港版书') || name.includes('香港版书')) tags.add('外文书');
+  if (name.includes('旧书') || name.includes('二手书')) tags.add('二手书');
+  if (name.includes('儿童') || name.includes('童书') || name.includes('绘本') || name.includes('少儿')) tags.add('亲子');
+  if (name.includes('咖啡')) tags.add('咖啡阅读');
+  if (name.includes('艺术') || name.includes('美术') || name.includes('设计')) tags.add('艺术／设计');
+  if (name.includes('影视') || name.includes('戏剧') || name.includes('剧本')) tags.add('影视戏剧');
+  if (name.includes('女性主义') || name.includes('女权')) tags.add('女性主义');
+  if (name.includes('独立书店')) tags.add('独立书店');
+  if (name.includes('江景') || name.includes('滨江')) tags.add('江景');
+  if (name.includes('海景')) tags.add('海景');
   if (mallAddressPattern.test(address)) tags.add('商场内书店');
-  return tags.size ? [...tags] : ['书店'];
+  return tags.size ? [...tags].slice(0, 4) : ['书店'];
 }
 
 function isBookstore(poi) {
@@ -41,8 +50,13 @@ function mapUrl(poi) {
   return 'https://uri.amap.com/marker?' + query.toString();
 }
 
-function createDescription(poi) {
-  return (poi.adname ? '位于' + poi.adname + '的' : '这家') + '实体书店；可通过地图和书友分享进一步了解近期选书、空间与活动。';
+function createDescription(poi, tags) {
+  const area = poi.adname ? '位于' + poi.adname + '的' : '这家';
+  if (tags.includes('书城')) return area + '实体书城，适合集中挑选不同门类图书。';
+  if (tags.includes('古籍')) return area + '古籍书店，可从版本与旧书线索开始寻书。';
+  if (tags.includes('教材书')) return area + '教材书店，适合按学习需求查找教学用书。';
+  if (tags.includes('商场内书店')) return area + '商场内书店，适合在逛店时顺路挑书。';
+  return area + '实体书店，可通过地图与书友分享了解近期到店信息。';
 }
 
 async function searchBookstores(url, env) {
@@ -83,7 +97,7 @@ async function searchBookstores(url, env) {
       address,
       image: (poi.photos?.find((photo) => photo.url)?.url || fallbackImage).replace(/^http:/i, 'https:'),
       tags,
-      description: profile?.description || createDescription(poi),
+      description: [...(profile?.description || createDescription(poi, tags))].slice(0, 45).join(''),
       mapUrl: link,
       reviewUrl: link,
     };

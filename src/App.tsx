@@ -3,7 +3,7 @@ import { styleOptions } from './data/bookstores'
 import { searchBookstores } from './services/bookstoreService'
 import type { Bookstore, BookstoreSearchParams } from './types/bookstore'
 
-const cityOptions = ['上海', '北京', '杭州', '成都', '广州', '深圳', '南京', '苏州', '武汉', '西安', '重庆', '厦门', '青岛', '长沙', '昆明', '大连']
+const cityOptions = ['上海', '北京', '杭州', '成都']
 
 function PinIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" /><circle cx="12" cy="9" r="2.4" /></svg>
@@ -88,10 +88,9 @@ export default function App() {
             <label htmlFor="city">你在哪座城市？</label>
             <div className="select-wrap">
               <PinIcon />
-              <input id="city" list="city-options" value={city} onChange={(event) => setCity(event.target.value)} placeholder="输入城市" autoComplete="address-level2" />
-              <datalist id="city-options">
+              <select id="city" value={city} onChange={(event) => setCity(event.target.value)}>
                 {cityOptions.map((option) => <option key={option} value={option} />)}
-              </datalist>
+              </select>
               <ArrowIcon />
             </div>
           </div>

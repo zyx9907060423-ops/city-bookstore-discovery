@@ -93,9 +93,18 @@ export function getAppliedTags(input: BookstoreTagInput): AppliedTag[] {
   if (includesAny(name, ['教材', '教辅', '课本'])) add('教材书', '高德 POI 门店名称')
   if (name.includes('书城')) add('书城', '高德 POI 门店名称')
   if (includesAny(name, ['外文书', '港版书', '香港版书'])) add('外文书', '高德 POI 门店名称')
+  if (includesAny(name, ['旧书', '二手书'])) add('二手书', '高德 POI 门店名称')
+  if (includesAny(name, ['儿童', '童书', '绘本', '少儿'])) add('亲子', '高德 POI 门店名称')
+  if (name.includes('咖啡')) add('咖啡阅读', '高德 POI 门店名称')
+  if (includesAny(name, ['艺术', '美术', '设计'])) add('艺术／设计', '高德 POI 门店名称')
+  if (includesAny(name, ['影视', '戏剧', '剧本'])) add('影视戏剧', '高德 POI 门店名称')
+  if (includesAny(name, ['女性主义', '女权'])) add('女性主义', '高德 POI 门店名称')
+  if (name.includes('独立书店')) add('独立书店', '高德 POI 门店名称')
+  if (includesAny(name, ['江景', '滨江'])) add('江景', '高德 POI 门店名称')
+  if (name.includes('海景')) add('海景', '高德 POI 门店名称')
   if (mallAddressPattern.test(address)) add('商场内书店', '高德 POI 地址')
 
-  return [...applied.values()]
+  return [...applied.values()].slice(0, 4)
 }
 
 export function applySupportedTags(input: BookstoreTagInput) {
