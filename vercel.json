@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm build",
+  "buildCommand": "pnpm exec tsc -b && pnpm exec vite build",
   "outputDirectory": "dist"
 }
